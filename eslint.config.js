@@ -8,7 +8,7 @@ export default [
   js.configs.recommended,
   {
     files: ["client/**/*.{js,jsx}"],
-    languageOptions: { globals: globals.browser, parserOptions: { ecmaFeatures: { jsx: true } } },
+    languageOptions: { globals: { ...globals.browser, __MAX_UPLOAD_MB__: "readonly" }, parserOptions: { ecmaFeatures: { jsx: true } } },
     plugins: { "react-hooks": reactHooks, react },
     rules: {
       "react/jsx-uses-vars": "error",
@@ -22,6 +22,10 @@ export default [
     files: ["server/**/*.js", "shared/**/*.js", "scripts/**/*.mjs", "*.js"],
     languageOptions: { globals: { ...globals.node, File: "readonly", FormData: "readonly" } },
     rules: { "no-unused-vars": ["warn", { args: "none", varsIgnorePattern: "^_" }] },
+  },
+  {
+    files: ["client/vite.config.js", "netlify/**/*.js", "api/**/*.js"],
+    languageOptions: { globals: { ...globals.node } },
   },
   {
     files: ["e2e/**/*.js"],

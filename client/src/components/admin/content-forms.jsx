@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { deleteFaq, saveBusinessSettings, saveFaq, saveHomepageSection, saveSiteMessaging } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/fields";
+import { ImageInput } from "@/components/ui/image-input";
 import { Card } from "@/components/ui/misc";
 function useToastState(state, refresh = true) {
     const router = useRouter();
@@ -44,8 +45,8 @@ export function BusinessForm({ b }) {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Logo URL" htmlFor="logo_url" error={e.logo_url} hint="Public https:// image link. Leave blank to keep the current logo"><Input id="logo_url" name="logo_url" defaultValue={/^https:/i.test(b.logo_key) ? b.logo_key : ""} placeholder="https://.../anulogo.jpeg" /></Field>
-          <Field label="Logo" htmlFor="logo" error={e.logo} hint="Or upload a file. JPEG, PNG or WebP"><Input id="logo" name="logo" type="file" accept="image/jpeg,image/png,image/webp"/></Field>
-          <Field label="Favicon" htmlFor="favicon" error={e.favicon}><Input id="favicon" name="favicon" type="file" accept="image/jpeg,image/png,image/webp"/></Field>
+          <Field label="Logo" htmlFor="logo" error={e.logo} hint="Or upload a file. JPEG, PNG or WebP"><ImageInput id="logo" name="logo" /></Field>
+          <Field label="Favicon" htmlFor="favicon" error={e.favicon}><ImageInput id="favicon" name="favicon" /></Field>
         </div>
         <p className="text-xs text-muted-foreground">Currency is fixed to INR (₹).</p>
         <div className="flex justify-end"><Button type="submit" disabled={pending}>Save business settings</Button></div>
@@ -92,7 +93,7 @@ export function SectionForm({ section }) {
         {section.key === "hero" ? (<div className="grid gap-3 sm:grid-cols-3">
             <Field label="Primary button" htmlFor="primary_cta"><Input id="primary_cta" name="primary_cta" defaultValue={c.primary_cta ?? ""}/></Field>
             <Field label="Secondary button" htmlFor="secondary_cta"><Input id="secondary_cta" name="secondary_cta" defaultValue={c.secondary_cta ?? ""}/></Field>
-            <Field label="Hero image" htmlFor="hero_image"><Input id="hero_image" name="hero_image" type="file" accept="image/jpeg,image/png,image/webp"/></Field>
+            <Field label="Hero image" htmlFor="hero_image"><ImageInput id="hero_image" name="hero_image" /></Field>
           </div>) : null}
         {section.key === "how_it_works" ? (<Field label="Steps" htmlFor="steps" hint="One per line: Title | description (max 6)"><Textarea id="steps" name="steps" defaultValue={(c.steps ?? []).map((s) => `${s.title} | ${s.body}`).join("\n")}/></Field>) : null}
         <div className="flex justify-end"><Button type="submit" size="sm" disabled={pending}>Save section</Button></div>

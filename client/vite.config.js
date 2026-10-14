@@ -7,6 +7,8 @@ export default defineConfig({
   root: import.meta.dirname,
   envDir: path.resolve(import.meta.dirname, ".."), // single .env.local at the repo root
   plugins: [react(), tailwindcss()],
+  // Same limit the server enforces: serverless hosts (Vercel ~4.5 MB, Netlify ~6 MB bodies) vs a Node server (24 MB).
+  define: { __MAX_UPLOAD_MB__: JSON.stringify(process.env.VERCEL || process.env.NETLIFY ? 4 : 24) },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),

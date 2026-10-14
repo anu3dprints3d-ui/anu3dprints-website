@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { saveCategory } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/fields";
+import { ImageInput } from "@/components/ui/image-input";
 import { Card } from "@/components/ui/misc";
 export function CategoryForm({ category, imageUrl }) {
     const router = useRouter();
@@ -40,7 +41,7 @@ export function CategoryForm({ category, imageUrl }) {
         <div className="space-y-2">
           <p className="text-sm font-medium">Category image</p>
           {imageUrl ? <div className="relative h-32 w-52 overflow-hidden rounded-xl bg-muted"><Image src={imageUrl} alt={category?.image_alt ?? ""} fill sizes="208px" className="object-cover"/></div> : null}
-          <Input name="image" type="file" accept="image/jpeg,image/png,image/webp" aria-invalid={!!e.image}/>
+          <ImageInput name="image" aria-invalid={!!e.image} />
           {e.image ? <p role="alert" className="text-xs text-danger">{e.image}</p> : <p className="text-xs text-muted-foreground">JPEG, PNG or WebP, up to 5 MB. Uploading replaces the current image.</p>}
           <Field label="Image alt text" htmlFor="image_alt"><Input id="image_alt" name="image_alt" defaultValue={category?.image_alt ?? ""}/></Field>
         </div>

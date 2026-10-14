@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { serverEnv } from "./env.js";
 import { checkImage } from "../../shared/imageValidation.js";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "./limits.js";
 let client;
 function s3() {
     if (client)
@@ -57,14 +58,14 @@ export async function uploadPublicImage(file, folder) {
     return { ok: true, key, width: processed.info.width, height: processed.info.height };
 }
 const PRIVATE_EXT = new Set(["stl", "step", "stp", "3mf", "png", "jpg", "jpeg", "webp", "pdf", "zip"]);
-export const MAX_PRIVATE_BYTES = 20 * 1024 * 1024;
+export const MAX_PRIVATE_BYTES = MAX_UPLOAD_BYTES;
 /** Customer reference files go to the PRIVATE bucket. Never served publicly. */
 export async function uploadPrivateFile(file, enquiryId) {
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
     if (!PRIVATE_EXT.has(ext))
         return { ok: false, error: `.${ext || "?"} files are not accepted.` };
     if (file.size === 0 || file.size > MAX_PRIVATE_BYTES)
-        return { ok: false, error: "File must be under 20 MB." };
+        return { ok: false, error: `File must be under ${MAX_UPLOAD_MB} MB.` };
     const key = `enquiries/${enquiryId}/${randomUUID()}.${ext}`;
     try {
         await s3().send(new PutObjectCommand({

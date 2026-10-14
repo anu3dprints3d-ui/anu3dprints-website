@@ -69,15 +69,48 @@ Migrations: `…_schema.sql` (tables, constraints, indexes, triggers, role helpe
 
 ## 4. Deploy
 
-The app is one Node process (Express serves the built client), so any Node host works (Render, Railway, Fly.io, a VPS, Azure/AWS app services).
+### Vercel (one project: static client + the API as a Vercel Function)
+
+`vercel.json` is already set up: output folder `client/dist`, the Express app runs as the function `api/index.js`, and
+`/api/*`, `/sitemap.xml`, `/robots.txt`, `/products/*`, `/categories/*` are rewritten to it (everything else falls back to the SPA).
+
+1. Import the GitHub repo in Vercel. Leave the framework as detected; build settings come from `vercel.json`.
+2. **Settings -> Environment Variables**: add every variable from `.env.example` **except** `PORT`, `ADMIN_BOOTSTRAP_*` and `SUPABASE_DB_URL`
+   (use your rotated keys; mark the secret ones **Sensitive**). Set `SITE_URL` to your Vercel/custom-domain URL, no trailing slash.
+   `VITE_*` variables are read at build time, so **redeploy after changing any variable**.
+3. In Supabase -> Authentication -> URL Configuration, set the Site URL and add `SITE_URL` to Redirect URLs.
+4. Open `/admin/login`. If actions return 404, check **Deployments -> Functions** for `api/index`.
+
+Vercel limits: request bodies are capped at ~4.5 MB, so uploads are limited to **4 MB** (photos are shrunk in the browser first;
+send big STL/ZIP files on WhatsApp). The rate limiter is in-memory per function instance, so it is a soft limit.
+
+### Netlify (one site: static client + the API as a Netlify Function)
+
+`netlify.toml` is already set up: it builds the client, runs the Express app as `/.netlify/functions/api`, and rewrites
+`/api/*`, `/sitemap.xml`, `/robots.txt`, `/products/*` and `/categories/*` to it (everything else falls back to the SPA).
+
+1. Push to GitHub and import the repo in Netlify (build settings are read from `netlify.toml`).
+2. **Site configuration -> Environment variables**: add every variable from `.env.example` **except** `PORT`, `ADMIN_BOOTSTRAP_*` and `SUPABASE_DB_URL`.
+   Mark `SUPABASE_SECRET_KEY` and `SUPABASE_S3_*` as secret. Set `SITE_URL` to your Netlify/custom-domain URL (no trailing slash).
+   `VITE_*` variables must be set **before** the build; after changing any variable, trigger a new deploy.
+3. In Supabase -> Authentication -> URL Configuration, set the Site URL and add `SITE_URL` to Redirect URLs.
+4. Open `/admin/login`. If an action says "Unknown action" or returns 404, the function did not deploy: check **Deploys -> Functions** for `api`.
+
+Netlify limits to know about:
+- Function requests are capped at ~6 MB, so uploads are limited to **4 MB** on Netlify (the browser shrinks photos to ~1600 px WebP before uploading, so photos fit easily).
+  Custom-print attachments (STL/ZIP) over 4 MB should be sent on WhatsApp. On a normal Node host the limit is 24 MB.
+- The in-memory rate limiter resets per function instance, so it is a soft limit on Netlify. Add Netlify's rate limiting / a CAPTCHA for strict protection.
+- Functions have a 10 s default timeout; image processing of one photo takes well under that.
+
+### Any Node host (Render, Railway, Fly.io, a VPS)
 
 1. Set every variable from `.env.example` in the host's secret store (`SITE_URL` = your public https URL).
 2. Build command `npm install && npm run build`; start command `npm start`.
-3. Put it behind HTTPS (most hosts do this; behind nginx keep `X-Forwarded-For`; the app sets `trust proxy`).
-4. Run `npm run db:migrate` once against production, bootstrap the first admin, run `npm run verify-rls`.
+3. Keep it behind HTTPS (the app sets `trust proxy`).
+
+For both: run `npm run db:migrate` once against production, bootstrap the first admin, then run `npm run verify-rls`.
 
 **Backups:** enable Supabase backups or schedule `pg_dump`; storage buckets are not part of DB backups.
-**Rate limiting:** the built-in limiter is in-memory per process. Run a single instance or put a shared limiter (Redis/edge WAF) in front for strict global limits.
 
 ## 5. Troubleshooting
 
@@ -89,7 +122,7 @@ The app is one Node process (Express serves the built client), so any Node host 
 | "Upload to storage failed" | Admin → Settings → Storage status shows the failing bucket/error class; check endpoint, region, keys, bucket names. |
 | Can't sign in | The user needs a row in `user_roles` and an active profile. Wrong role → "No access". |
 | Invite/reset link invalid | Email templates must use the `token_hash` URL above. |
-| Upload rejected | Single files max 20 MB; custom-print attachments max 24 MB total; product/gallery images max 5 MB. |
+| Upload rejected | Netlify: 4 MB per request (photos are shrunk automatically). Node host: custom-print attachments 24 MB total. Product/gallery images are shrunk to <=1600 px before sending. |
 
 ## 6. Known limitations
 

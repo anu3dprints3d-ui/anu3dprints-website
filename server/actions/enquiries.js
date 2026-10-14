@@ -6,6 +6,7 @@ import { uploadPrivateFile } from "../lib/s3.js";
 import { bulkEnquirySchema, contactEnquirySchema, customPrintEnquirySchema, productEnquirySchema, } from "../../shared/schemas.js";
 import { buildWhatsAppUrl, bulkOrderMessage, customPrintMessage, productEnquiryMessage } from "../../shared/whatsapp.js";
 import { formatDate } from "../../shared/format.js";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "../lib/limits.js";
 const schema = z.discriminatedUnion("type", [
     contactEnquirySchema,
     productEnquirySchema,
@@ -39,8 +40,8 @@ export async function submitEnquiry(ctx, formData) {
     const files = formData.getAll("files").filter((f) => f instanceof File && f.size > 0);
     if (files.length > MAX_FILES)
         return { ok: false, error: `Attach at most ${MAX_FILES} files.` };
-    if (files.reduce((n, f) => n + f.size, 0) > 24 * 1024 * 1024)
-        return { ok: false, error: "Attached files must total 24 MB or less." };
+    if (files.reduce((n, f) => n + f.size, 0) > MAX_UPLOAD_BYTES)
+        return { ok: false, error: `Attached files must total ${MAX_UPLOAD_MB} MB or less. For bigger files, send them to us on WhatsApp.` };
     const db = createAdminClient();
     const { data: biz } = await db.from("site_settings").select("value").eq("key", "business").maybeSingle();
     const phone = biz?.value?.whatsapp || process.env.WHATSAPP_PHONE_NUMBER || "";

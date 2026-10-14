@@ -7,7 +7,8 @@ import { deleteGalleryItem, updateGalleryItem, uploadGalleryItem } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/fields";
 import { Card } from "@/components/ui/misc";
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@shared/imageValidation";
+import { ALLOWED_IMAGE_TYPES } from "@shared/imageValidation";
+import { compressImage, MAX_SEND_BYTES, RAW_IMAGE_LIMIT } from "@/lib/imageCompress";
 export function GalleryManager({ items }) {
     const router = useRouter();
     const inputRef = useRef(null);
@@ -20,8 +21,8 @@ export function GalleryManager({ items }) {
                 toast.error(`${f.name}: only JPEG, PNG or WebP`);
                 return false;
             }
-            if (f.size > MAX_IMAGE_BYTES) {
-                toast.error(`${f.name}: larger than 5 MB`);
+            if (f.size > RAW_IMAGE_LIMIT) {
+                toast.error(`${f.name}: larger than 25 MB`);
                 return false;
             }
             return true;
@@ -29,8 +30,13 @@ export function GalleryManager({ items }) {
         if (!ok.length)
             return;
         let success = 0;
-        for (const [i, file] of ok.entries()) {
+        for (const [i, original] of ok.entries()) {
             setProgress({ done: i, total: ok.length });
+            const file = await compressImage(original); // shrink in the browser first
+            if (file.size > MAX_SEND_BYTES) {
+                toast.error(`${original.name}: still too large after shrinking - try a smaller image.`);
+                continue;
+            }
             const fd = new FormData();
             fd.set("file", file);
             fd.set("project_type", projectType);
@@ -39,10 +45,10 @@ export function GalleryManager({ items }) {
                 if (res.ok)
                     success++;
                 else
-                    toast.error(`${file.name}: ${res.message}`);
+                    toast.error(`${original.name}: ${res.message}`);
             }
             catch {
-                toast.error(`${file.name}: network error`);
+                toast.error(`${original.name}: network error`);
             }
         }
         setProgress(null);

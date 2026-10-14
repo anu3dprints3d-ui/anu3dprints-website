@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { submitEnquiry } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/fields";
+import { compressImage } from "@/lib/imageCompress";
 const MATERIALS = ["PLA", "PETG", "ABS", "TPU (flexible)", "Not sure - advise me"];
 export function EnquiryForm({ type, productId, submitLabel }) {
     const formRef = useRef(null);
@@ -122,9 +123,26 @@ export function EnquiryForm({ type, productId, submitLabel }) {
           </label>
           <label htmlFor="files" className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-muted/50 px-4 text-sm text-muted-foreground hover:border-gold-deep">
             <Paperclip className="size-4" aria-hidden/>
-            {fileNote || "STL, STEP, 3MF, images, PDF or ZIP - up to 3 files, 24 MB total"}
+            {fileNote || "STL, STEP, 3MF, images, PDF or ZIP - up to 3 files, "+__MAX_UPLOAD_MB__+" MB total"}
           </label>
-          <input id="files" name="files" type="file" multiple accept=".stl,.step,.stp,.3mf,.png,.jpg,.jpeg,.webp,.pdf,.zip" className="sr-only" onChange={(e) => setFileNote(e.target.files?.length ? `${e.target.files.length} file(s) selected` : "")}/>
+          <input id="files" name="files" type="file" multiple accept=".stl,.step,.stp,.3mf,.png,.jpg,.jpeg,.webp,.pdf,.zip" className="sr-only" onChange={async (e) => {
+            // Shrink photos in the browser, then check the total against the host's request-size limit.
+            const input = e.currentTarget;
+            const chosen = [...(input.files ?? [])];
+            if (!chosen.length)
+                return setFileNote("");
+            const dt = new DataTransfer();
+            for (const f of chosen)
+                dt.items.add(await compressImage(f));
+            input.files = dt.files;
+            const total = [...dt.files].reduce((n, f) => n + f.size, 0);
+            if (total > __MAX_UPLOAD_MB__ * 1024 * 1024) {
+                input.value = "";
+                setFileNote(`Those files are too large (limit ${__MAX_UPLOAD_MB__} MB total). Send big files to us on WhatsApp instead.`);
+                return;
+            }
+            setFileNote(`${chosen.length} file(s) selected`);
+        }}/>
         </div>) : null}
 
       <Button type="submit" variant="whatsapp" size="lg" className="w-full" disabled={pending}>

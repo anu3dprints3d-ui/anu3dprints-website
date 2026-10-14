@@ -3,7 +3,8 @@ import { useRef, useState, useTransition } from "react";
 import { ArrowLeft, ArrowRight, Loader2, Star, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { deleteProductImage, moveProductImage, setPrimaryImage, updateImageAlt, uploadProductImage } from "@/api";
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@shared/imageValidation";
+import { ALLOWED_IMAGE_TYPES } from "@shared/imageValidation";
+import { compressImage, MAX_SEND_BYTES, RAW_IMAGE_LIMIT } from "@/lib/imageCompress";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/lib/nav";
 export function ImageManager({ productId, images }) {
@@ -18,8 +19,8 @@ export function ImageManager({ productId, images }) {
                 toast.error(`${f.name}: only JPEG, PNG or WebP`);
                 return false;
             }
-            if (f.size > MAX_IMAGE_BYTES) {
-                toast.error(`${f.name}: larger than 5 MB`);
+            if (f.size > RAW_IMAGE_LIMIT) {
+                toast.error(`${f.name}: larger than 25 MB`);
                 return false;
             }
             return true;
@@ -28,19 +29,24 @@ export function ImageManager({ productId, images }) {
             return;
         const failed = [];
         setProgress({ done: 0, total: accepted.length, failed });
-        for (const [i, file] of accepted.entries()) {
+        for (const [i, original] of accepted.entries()) {
+            const file = await compressImage(original); // shrink in the browser: faster, and fits the host's size limit
             const fd = new FormData();
             fd.set("file", file);
             let res;
-            try {
-                res = await uploadProductImage(productId, fd);
+            if (file.size > MAX_SEND_BYTES) {
+                res = { ok: false, message: "Still too large after shrinking - try a smaller image." };
             }
-            catch {
-                res = { ok: false, message: "Network error" };
-            }
+            else
+                try {
+                    res = await uploadProductImage(productId, fd);
+                }
+                catch {
+                    res = { ok: false, message: "Network error" };
+                }
             if (!res.ok) {
-                failed.push(file.name);
-                toast.error(`${file.name}: ${res.message}`);
+                failed.push(original.name);
+                toast.error(`${original.name}: ${res.message}`);
             }
             setProgress({ done: i + 1, total: accepted.length, failed: [...failed] });
         }
