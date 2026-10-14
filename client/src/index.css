@@ -1,0 +1,117 @@
+@import "tailwindcss";
+@source "./";
+
+:root {
+  --background: #fffdf8;
+  --foreground: #16130e;
+  --card: #ffffff;
+  --muted: #f5f1e8;
+  --muted-foreground: #6b6455;
+  --border: #e8e1d0;
+  --ink: #14110c;
+  --gold: #f5b700;
+  --gold-deep: #d99a00;
+  --accent: #ea580c;
+  --accent-foreground: #ffffff;
+  --success: #15803d;
+  --danger: #b91c1c;
+  --ring: #d99a00;
+  --whatsapp: #128c4a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ink: var(--ink);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
+  --color-whatsapp: var(--whatsapp);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: 0 1px 2px rgb(20 17 12 / 0.05), 0 8px 24px -12px rgb(20 17 12 / 0.15);
+  --shadow-lift: 0 2px 4px rgb(20 17 12 / 0.06), 0 18px 40px -16px rgb(20 17 12 / 0.28);
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 15px; /* compact overall scale; mobile keeps 16px below */
+}
+@media (max-width: 640px) { html { font-size: 16px; } }
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal { animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { animation: none; }
+  * { transition-duration: 0.01ms !important; }
+}
+
+.container-page {
+  width: 100%;
+  max-width: 74rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) { .container-page { padding-inline: 1.5rem; } }
+@media (min-width: 1024px) { .container-page { padding-inline: 2rem; } }
+
+.font-script { font-family: "Caveat", cursive; }
+
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.float { animation: float-y 6s ease-in-out infinite; }
+.float-slow { animation: float-y 9s ease-in-out infinite; }
+@keyframes pulse-glow { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+.glow { animation: pulse-glow 4s ease-in-out infinite; }
+@keyframes print-head { 0%, 100% { transform: translateX(-14px); } 50% { transform: translateX(14px); } }
+.print-head { animation: print-head 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .float, .float-slow, .glow, .print-head { animation: none; } }
+
+/* Scrolling ticker: two identical halves, slide by one half = seamless loop. */
+@keyframes marquee-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { width: max-content; animation: marquee-slide 38s linear infinite; will-change: transform; }
+.marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none; } }
+
+/* Admin tables become stacked cards on phones: each row is a card, each cell shows its data-label. */
+@media (max-width: 639px) {
+  .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; }
+  .responsive-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .responsive-table tr { position: relative; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+  .responsive-table tr:last-child { border-bottom: 0; }
+  .responsive-table td { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; border: 0; text-align: right; }
+  .responsive-table td[data-label]::before { content: attr(data-label); flex-shrink: 0; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); text-align: left; }
+  .responsive-table td:not([data-label]) { text-align: left; justify-content: flex-start; }
+  .responsive-table td[data-select] { position: absolute; top: 0.6rem; right: 0.6rem; width: auto; padding: 0; }
+}

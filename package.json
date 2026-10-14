@@ -1,0 +1,57 @@
+{
+  "name": "anu3dprints-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/check-env.mjs && concurrently -k -n api,web -c yellow,cyan \"node --env-file=.env.local --watch server/index.js\" \"vite --config client/vite.config.js\"",
+    "build": "vite build --config client/vite.config.js",
+    "start": "node scripts/check-env.mjs && node --env-file=.env.local server/index.js",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "bootstrap-admin": "node --env-file=.env.local scripts/bootstrap-admin.mjs",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "verify-rls": "node --env-file=.env.local scripts/verify-rls.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1150.0",
+    "@aws-sdk/s3-request-presigner": "^3.1150.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^1.55.0",
+    "multer": "^2.4.0",
+    "pg": "^8.23.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router-dom": "^7.18.4",
+    "sharp": "^0.35.5",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/coverage-v8": "^5.0.4",
+    "concurrently": "^10.0.6",
+    "eslint": "^9",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  }
+}
