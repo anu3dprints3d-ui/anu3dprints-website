@@ -6,9 +6,9 @@
 [build.environment]
   # These values are not secrets: VITE_* are intentionally bundled into the browser
   # (publishable key + project URL), and the rest are plain config that also appears
-  # in source/docs (port, bucket names, region, public WhatsApp number).
+  # in source/docs (port, bucket names, region, public WhatsApp number, public site URL).
   # Real secrets (SUPABASE_SECRET_KEY, S3 keys, admin password) are still scanned.
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY,PORT,SUPABASE_S3_PUBLIC_BUCKET,SUPABASE_S3_PRIVATE_BUCKET,SUPABASE_S3_REGION,WHATSAPP_PHONE_NUMBER"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY,PORT,SUPABASE_S3_PUBLIC_BUCKET,SUPABASE_S3_PRIVATE_BUCKET,SUPABASE_S3_REGION,WHATSAPP_PHONE_NUMBER,SITE_URL"
 
 # Single-page app: let React Router handle client-side routes
 [[redirects]]
